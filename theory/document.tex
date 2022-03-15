@@ -1,0 +1,103 @@
+\documentclass{article}
+
+\title{Polarization Ray Tracing}
+\author{Jaren Ashcraft}
+\date{\today}
+
+%\renewcommand{\surfnorm}{$\vec{\eta}$}
+%\renewcommand{\kin}{$\vec{k_{in}}$}
+%\renewcommand{\kout}{$\vec{k_{out}}$}
+%\renewcommand{\aoi}{$\theta_{i}$}
+%\renewcommand{\aor}{$\theta_{r}$}
+%\renewcommand{$\overline{P}_{q}$}{\Pmat}
+
+
+\begin{document}
+	
+	\maketitle
+	
+	\section{Theory of Polarization Ray Tracing}
+	Polarization Ray Tracing (PRT) is a ray-based approach to deriving insights about the electric field invented by Chippman in the 90's when he was in a very famous TeeeVee show. All theory presented is from Chipman's Polarized Light and Optical Systems (PL$\&$OS).
+	
+	The ray-based vector calculation is an application of Maxwell's Equations at an arbitrary boundary between two media of refractive indices $n_1$ and $n_2$. By solving for the ratios of the incident field with the reflected and transmitted fields, the Fresnel coefficients of the surfaces can be derived. These are commonly seen as a function of the angles of incidence and reflection, but for simplicity they can just be calculated with the angles of incidence.
+	
+	\begin{equation}
+		r_s = \frac{cos(\theta_i) - \sqrt{n^2 - sin^2(\theta_i)}}{cos(\theta_i) + \sqrt{n^2 - sin^2(\theta_i)}}
+	\end{equation}
+
+	\begin{equation}
+		t_s = \frac{2cos(\theta_i)}{cos(\theta_i) + \sqrt{n^2 - sin^2(\theta_i)}}
+	\end{equation}
+
+	\begin{equation}
+		r_p = \frac{n^2 cos(\theta_i) - \sqrt{n^2 - sin^2(\theta_i)}}{n^2 cos(\theta_i) + \sqrt{n^2 - sin^2(\theta_i)}}
+	\end{equation}
+
+	\begin{equation}
+		t_p = \frac{2n cos(\theta_i)}{n^2 cos(\theta_i) + \sqrt{n^2 - sin^2(\theta_i)}}
+	\end{equation}
+
+	Where $n = \frac{n_t}{n_i}$, and $\theta_i$ is the angle of incidence on the surface with respect to the surface normal. The essence of PRT is to capture these values and calculate them for arbitrary points on an optical surface in a ray tracing engine. This is useful to raytracers because all of the information needed is easily supplied by the ray tracing code. We just need to configure the math. Chipman accomplishes this with a polarization ray tracing matrix $\overline{P}_q$. It is a rank three matrix that operates on the electric field in three dimensions. They can be calculated for the $q$-th surface such that when multiplied together they create the effective polarization influence on a given ray. To keep track of the electric field the rays need to generally be defined with a global coordinate system. There's some theorem of topology that asserts this, but it allows you to avoid singularities in the description of your polarized field. The topology theorem states that any vector field must have at least two poles in a given coordinate system, so we can use the double-pole coordinate system to avoid the pole altogether. However, it is very convenient to describe the Fresnel interactions with local coordinates, so we utilize Orthogonal Transformations between the local ($s-p$) and global ($dipole$) coordinate systems.
+	
+	Orthogonal matrices are real, unitary matrices that describe the rotations of orthogonal coordinate systems. In this case, a transformation between a local coordinate basis and our global coordinate system. The local system is defined by the $\vec{s}-\vec{p}-\vec{k}$ basis, because it is aligned with the eigenpolarizations of the electric field at a given surface and its direction of propagation. The $\vec{s}$ vector is computed with the wave vector $\vec{k_{q-1}}$ and surface normal $\vec{\eta_{q}}$.
+	
+	\begin{equation}
+		\vec{s}_{q} = \frac{\vec{k_{q-1}} X \vec{\eta_{q}}}{|\vec{k_{q-1}} X \vec{\eta_{q}}|}
+	\end{equation}
+
+	The $\vec{p_{q}}$ component is constructed to be orthogonal to both
+	
+	\begin{equation}
+		\vec{p}_{q} = \vec{k}_{q-1} X \vec{s}_{q}
+	\end{equation}
+
+	After the interface, the $\vec{s}$ component remains the same, but the $\vec{p}$ component is recalculated using $\vec{k_{q}}$ and $\vec{s_q}$. 
+	
+	\begin{equation}
+		\vec{p}_{q}' = \vec{k}_{q} X \vec{s}_{q} 
+	\end{equation}
+	
+	$\vec{k_{q}}$ is calculated by snell's law. Using these vectors we construct the orthogonal transformation matrices.
+	
+	\begin{equation}
+		\overline{O}_{in,q}^{-1} = 
+%		\begin{pmatrix}
+%			\vec{s}_{x,q} & \vec{s}_{y,q} & \vec{s}_{z,q} \\
+%			\vec{p}_{x,q} & \vec{p}_{y,q} & \vec{p}_{z,q} \\ 
+%			\vec{k}_{x,q-1} & \vec{k}_{y,q-1} & \vec{k}_{z,q-1} \\ 
+%		\end{pmatrix}
+	\end{equation}
+
+	\begin{equation}
+		\overline{O}_{out,q} = 
+%		\begin{pmatrix}
+%			\vec{s}_{x,q} & \vec{p}_{x,q}' & \vec{k}_{x,q} \\ 
+%			\vec{s}_{y,q} & \vec{p}_{y,q}' & \vec{k}_{y,q} \\ 
+%			\vec{s}_{z,q} & \vec{p}_{z,q}' & \vec{k}_{z,q} \\ 
+%		\end{pmatrix}
+	\end{equation}
+
+	The physics are captured by the Jones matrix where the fresnel coefficients are placed.
+	
+	\begin{equation}
+		\overline{J_{q}} = 
+%		\begin{pmatrix}
+%			\alpha_{s,q} & 0 & 0 \\
+%		    0 & \alpha_{p,q} & 0 \\
+%			0 & 0 & 1 \\
+%   	\end{pmatrix}
+	\end{equation} 
+
+	Here $\alpha$ denotes a Fresnel coefficient, either transmission or reflection, depending on which path you are following. The PRT matrix is computed by multiplying the three together.
+	
+	\begin{equation}
+		\overline{P}_{q} = \overline{O}_{out,q} \overbrace{J}_{q} \overbrace{O}_{in,q}^{-1}
+	\end{equation}
+
+	To accurately convert the P pupils to Jones pupils one must rotate them into the coordinate system of the exit pupil. This requires a set of basis vectors to do the orthogonal transformation, and the $\vec{a}_{loc}$ must be specified The Jones Pupil at the exit pupil $\overline{J}_{ij,X}$ can be calculated from the P matrix at the exit pupil $\overbrace{P}_{ij,X}$ using the orthogonal matrices $\overbrace{O}_{ij,X}^{-1}$ and $\overbrace{O}_{ij,E}$. The subscripts X and E denote the exit and entrance pupils respectively. This operation transfers the entrance pupil coordinates to global coordinates, and then the global coordinates to the exit pupil coordinates. The coordinate systems should be consistent throughout. For the on-axis case, the wave vector will be normal to all points in the pupils. In this case, simply choosing the basis vectors to be x- and y- is sufficient.
+	
+	\begin{equation}
+		\overline{J}_{ij,X} = \overbrace{O}_{ij,X}^{-1} \overbrace{P}_{ij,X} \overbrace{O}_{ij,E}
+	\end{equation}
+
+\end{document}

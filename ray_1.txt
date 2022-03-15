@@ -1,0 +1,39 @@
+Ray Trace Data
+
+File : D:\Work\OneDrive\University_Arizona\GMT_Polarization\GMT_segmented\GMT_segmented.zmx
+Title: Direct Gregorian Narrow-field (segmented)
+Date : 2/24/2022
+
+
+Units       :	 Millimeters	
+Wavelength  :	 0.500000	 µm	
+Coordinates :	 Local
+Direction cosines are after refraction or reflection from the surface or object.
+Angles are in degrees.
+
+Normalized X Field Coord (Hx) :	     0.0000000000	
+Normalized Y Field Coord (Hy) :	     0.0000000000	
+Normalized X Pupil Coord (Px) :	    -1.0000000000	
+Normalized Y Pupil Coord (Py) :	    -1.0000000000	
+
+Real Ray Trace Data:
+
+Surf	       X-coordinate	       Y-coordinate	       Z-coordinate	       X-cosine	       Y-cosine	       Z-cosine	       X-normal	       Y-normal	       Z-normal	       Angle in	        Path length	 Comment	
+OBJ	            Infinity	           Infinity	           Infinity	   0.0000000000	   0.0000000000	   1.0000000000	              -              -              -              -                  - 
+  1	   -1.2724000000E+04	  -1.2724000000E+04	   0.0000000000E+00	   0.0000000000	   0.0000000000	   1.0000000000	   0.0000000000	   0.0000000000	  -1.0000000000	    0.000000000	   0.0000000000E+00	 
+  2	   -1.2724000000E+04	  -1.2724000000E+04	   0.0000000000E+00	   0.0000000000	   0.0000000000	   1.0000000000	   0.0000000000	   0.0000000000	  -1.0000000000	    0.000000000	  -2.2000000000E+04	 M2 BAFFLE
+  3	   -1.2724000000E+04	  -1.2724000000E+04	  -4.8198837718E+03	   0.0000000000	   0.0000000000	   1.0000000000	   0.3534444444	   0.3534444444	  -0.8661143397	   29.989807128	   1.7180116228E+04	  Vignetted
+  4	   -1.2724000000E+04	  -1.2724000000E+04	   0.0000000000E+00	   0.0000000000	   0.0000000000	   1.0000000000	   0.0000000000	   0.0000000000	  -1.0000000000	    0.000000000	  -5.1801162282E+03	 PRIMARY MIRRORS
+       -1.2724000000E+04	  -1.2724000000E+04	   2.8749980000E+00	   0.0000000000	   0.0000000000	   1.0000000000	   0.0000000000	   0.0000000000	   0.0000000000	   90.000000000	   0.0000000000E+00	 NSC Object	 0 (terminated)
+Ray terminated, missed surface 5.
+
+Paraxial Ray Trace Data:
+
+Surf	       X-coordinate	       Y-coordinate	       Z-coordinate	       X-cosine	       Y-cosine	       Z-cosine	       X-normal	       Y-normal	       Z-normal	       Angle in	        Path length	 Comment	
+OBJ	            Infinity	           Infinity	           Infinity	   0.0000000000	   0.0000000000	   1.0000000000	 
+  1	   -1.2724000000E+04	  -1.2724000000E+04	   0.0000000000E+00	   0.0000000000	   0.0000000000	   1.0000000000	 
+  2	   -1.2724000000E+04	  -1.2724000000E+04	   0.0000000000E+00	   0.0000000000	   0.0000000000	   1.0000000000	 M2 BAFFLE
+  3	   -1.2724000000E+04	  -1.2724000000E+04	   0.0000000000E+00	   0.0000000000	   0.0000000000	   1.0000000000	  Vignetted
+  4	   -1.2724000000E+04	  -1.2724000000E+04	   0.0000000000E+00	   0.0000000000	   0.0000000000	   1.0000000000	 PRIMARY MIRRORS
+       -1.2724000000E+04	  -1.2724000000E+04	   2.8749980000E+00	   0.0000000000	   0.0000000000	   1.0000000000	 NSC Object	 0 (terminated)
+Ray terminated, missed surface 5.
