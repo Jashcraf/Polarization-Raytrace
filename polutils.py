@@ -7,10 +7,10 @@ Created on Wed Oct 27 10:31:55 2021
 
 
 Unless it was changed, the ZOS raytrace returns a structure as an array with the following items
-- 0: errcode 
-- 1: vignettecode
-- 2: x position
-- 3: y position
+- 0: Success 
+- 1: raynumber
+- 2: errCode
+- 3: vignetteCode
 - 4: z position
 - 5: a direction cosine
 - 6: b direction cosine
@@ -39,24 +39,71 @@ Can you do a bunch of cross products at once? seek einsum
 import numpy as np
 
 # INCOMPLETE FUNCTION
-def ConvertBatchRayData(fname):
+def ConvertBatchRayData(fname,n1,n2):
 
     """
     We have some control over what form this takes, but the preliminary script has to be written in MATLAB I guess
     Ideally, the same ray does not have to be traced multiple times and the data comes as a list of AOI, AOR, and surface normals
     in terms of a global coordinate system
     It is likely unavoidable to loop through surfaces but idk
+
+    The column order of the table is 
+    0: xData
+    1: yData
+    2: zData
+    3: lData
+    4: mData
+    5: nData
+    6: l2Data
+    7: m2Data
+    8: n2Data
     """
 
     # INSERT SOME TEXT READING SECTION
-    rays = np.loadtxt(fname)
+    rays = np.genfromtxt(fname,skip_header=1,delimiter=',')
+
+    # Position at surface
+    xData = rays[:,0]
+    yData = rays[:,1]
+    zData = rays[:,2]
+
+    # Direction cosines after surface
+    lData = rays[:,3]
+    mData = rays[:,4]
+    nData = rays[:,5]
+
+    # Direction cosines of surface normal
+    l2Data = rays[:,6]
+    m2Data = rays[:,7]
+    n2Data = rays[:,8]
+
+    total_rays_in_both_axes = xData.shape[0]
+
+    # convert to angles of incidence
+    # calculates angle of exitance from direction cosine
+    # the LMN direction cosines are for AFTER refraction
+    # need to calculate via Snell's Law the angle of incidence
+    numerator = (lData*l2Data + mData*m2Data + nData*n2Data)
+    denominator = ((lData**2 + mData**2 + nData**2)**0.5)*(l2Data**2 + m2Data**2 + n2Data**2)**0.5
+    aoe_data = np.arccos(numerator/denominator)
+    aoe = aoe_data - (aoe_data[0:total_rays_in_both_axes] > np.pi/2) * np.pi
+    aoe = np.abs(aoe)
+    
+    # refractive indices - can grab from ZOS-API so I'm leaving these here commented, for now just user inputs
+    # n1 = TheSystem.MFE.GetOperandValue(ZOSAPI.Editors.MFE.MeritOperandType.INDX, toSurface - 1, waveNumber, 0, 0, 0, 0, 0, 0);
+    # n2 = TheSystem.MFE.GetOperandValue(ZOSAPI.Editors.MFE.MeritOperandType.INDX, toSurface, waveNumber, 0, 0, 0, 0, 0, 0);
+    aoi = np.arcsin(n2/n1 * np.sin(aoe))
+    
+    # convert to degrees
+    # aoi = aoi * 180/np.pi
+    # aoe = aoe * 180/np.pi
 
 
-    kin = np.array([rays[5],rays[6],rays[7]])
-    kout = np.array([rays[5],rays[6],rays[7]])
-    norm = rays[7]
+    #kin = np.array([rays[5],rays[6],rays[7]])
+    #kout = np.array([rays[5],rays[6],rays[7]])
+    #norm = rays[7]
 
-    return kin,kout,norm
+    return aoi,xData,yData
 
 
 def FresnelCoefficients(aoi,n1,n2,mode='reflection'):
@@ -82,7 +129,7 @@ def ConstructOrthogonalTransferMatrices(kin,kout,normal):
 
     # Construct Oin-1 with incident ray, say vectors are row vectors
     sin = np.cross(kin,normal)
-    sin /= np.linalg.norm(sin)
+    sin /= np.linalg.norm(sin) # normalize the s-vector
     pin = np.cross(kin,sin)
     Oin = np.array([sin,pin,kin])
 
