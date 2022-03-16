@@ -9,7 +9,7 @@ pth = '/Users/jashcraft/Desktop/prt-data/test_prt_data.txt'
 
 def GenAOIMap(fn,n1,n2):
 
-    aoi,x,y = pol.ConvertBatchRayData(pth,n1,n2)
+    aoi,x,y,kin,kout,norm = pol.ConvertBatchRayData(pth,n1,n2)
     ts,tp = pol.FresnelCoefficients(aoi,n1,n2)
     D = (ts**2 - tp**2)/(ts**2 + tp**2)
 

@@ -72,10 +72,18 @@ def ConvertBatchRayData(fname,n1,n2):
     mData = rays[:,4]
     nData = rays[:,5]
 
+    # Compute kin with Snell's Law 
+    kout = np.array([lData,mData,nData])
+    kin = np.cos(np.arcsin(n2*np.sin(np.arccos(kout))/n1))
+
+
     # Direction cosines of surface normal
     l2Data = rays[:,6]
     m2Data = rays[:,7]
     n2Data = rays[:,8]
+
+    # normal vector
+    norm = np.array([l2Data,m2Data,n2Data])
 
     total_rays_in_both_axes = xData.shape[0]
 
@@ -103,7 +111,7 @@ def ConvertBatchRayData(fname,n1,n2):
     #kout = np.array([rays[5],rays[6],rays[7]])
     #norm = rays[7]
 
-    return aoi,xData,yData
+    return aoi,xData,yData,kin,kout,norm
 
 
 def FresnelCoefficients(aoi,n1,n2,mode='reflection'):
@@ -124,6 +132,15 @@ def FresnelCoefficients(aoi,n1,n2,mode='reflection'):
         tp = (2*n*np.cos(aoi))/(n**2 * np.cos(aoi) + np.sqrt(n**2 - np.sin(aoi)**2))
 
         return ts,tp
+
+    elif mode == 'both':
+
+        ts = (2*np.cos(aoi))/(np.cos(aoi) + np.sqrt(n**2 - np.sin(aoi)**2))
+        tp = (2*n*np.cos(aoi))/(n**2 * np.cos(aoi) + np.sqrt(n**2 - np.sin(aoi)**2))
+        rs = (np.cos(aoi) - np.sqrt(n**2 - np.sin(aoi)**2))/(np.cos(aoi) + np.sqrt(n**2 - np.sin(aoi)**2))
+        rp = (n**2 * np.cos(aoi) - np.sqrt(n**2 - np.sin(aoi)**2))/(n**2 * np.cos(aoi) + np.sqrt(n**2 - np.sin(aoi)**2))
+
+        return rs,rp,ts,tp
 
 def ConstructOrthogonalTransferMatrices(kin,kout,normal):
 
