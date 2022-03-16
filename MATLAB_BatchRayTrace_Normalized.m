@@ -1,5 +1,5 @@
 function [ r ] = MATLAB_BatchRayTrace_Normalized( args )
-
+% This is just to initialize the ZOS-API connection
 if ~exist('args', 'var')
     args = [];
 end
@@ -26,18 +26,19 @@ end
 function [r] = BeginApplication(TheApplication, args)
 
     import ZOSAPI.*;
-
+    
+    % Creates empty system
     TheSystem = TheApplication.CreateNewSystem(ZOSAPI.SystemType.Sequential);
 
     % Add your custom code here...
     
-    % opens ZMX sample file
+    % opens desired ZMX file
     TheSystem.LoadFile(System.String.Concat(TheApplication.SamplesDir, '\Sequential\Objectives\Double Gauss 28 degree field.zmx'), false);
     
     % Set up Batch Ray Trace
     % creates batch raytrace in API
 	raytrace = TheSystem.Tools.OpenBatchRayTrace();
-    nsur = TheSystem.LDE.NumberOfSurfaces - 1;
+    nsur = TheSystem.LDE.NumberOfSurfaces - 1; % Ignore the object surface?
     max_rays = 101;
     total_rays_in_both_axes = (max_rays) * (max_rays);
     
@@ -46,20 +47,20 @@ function [r] = BeginApplication(TheApplication, args)
     RayTraceData = raytrace.CreateNormUnpol(total_rays_in_both_axes, ZOSAPI.Tools.RayTrace.RaysType.Real, nsur);
     
 	% offloads processing to C# dll 
-    NET.addAssembly(strcat(pwd, '\RayTrace.dll'));
+    NET.addAssembly(strcat(pwd, '\RayTrace.dll')); % Where does NET come from?
     import BatchRayTrace.*;
     
     % Attach the helper class to the ray database reader
-    tic();
+    tic(); % Begin timing
     close all;
     color_ary = {'blue', 'green', 'red', 'gold', 'pink', 'cyan', 'purple', 'teal'};
     
     
-    for wave = 1:3
+    for wave = 1:3 % separate raytrace for each wave
         hold on;
         % Call the function ReadNormUnpolData from dll
         % The syntax is ReadNormUnpolData(IBatchRayTrace rt, IRayTraceNormUnpolData rtt)
-        dataReader = ReadNormUnpolData(raytrace, RayTraceData);
+        dataReader = ReadNormUnpolData(raytrace, RayTraceData); % Notice how it isn't in a for loop
         % The variable dataReader can now use all the functions defined in the DLL
         dataReader.ClearData();
 

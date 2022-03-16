@@ -1,6 +1,6 @@
 import clr, os, winreg, ctypes, sys
 import numpy as np
-#from System.Runtime.InteropServices import GCHandle, GCHandleType
+from System.Runtime.InteropServices import GCHandle, GCHandleType
 
 
 class PythonStandaloneApplication(object):

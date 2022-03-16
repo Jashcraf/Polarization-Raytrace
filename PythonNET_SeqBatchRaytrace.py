@@ -136,35 +136,92 @@ if __name__ == '__main__':
 
     # DLLs and namespaces
     clr.AddReference(os.path.join(os.sep, os.path.dirname(os.path.realpath(__file__)), r'RayTrace.dll'))
-    import BatchRayTrace;
-    import ZOSAPI.Tools.RayTrace;
+    import BatchRayTrace
+    import ZOSAPI.Tools.RayTrace
 
     # load sample fly's eye example
-    zmxFile = os.path.join(os.sep, TheApplication.SamplesDir, r"Non-sequential\Miscellaneous\Digital_projector_flys_eye_homogenizer.zmx")
-    TheSystem.LoadFile(zmxFile, False);
+    #zmxFile = os.path.join(os.sep, TheApplication.SamplesDir, r"Non-sequential\Miscellaneous\Digital_projector_flys_eye_homogenizer.zmx")
+    zmxFile = os.path.join(os.sep, TheApplication.SamplesDir, r"\Sequential\Objectives\Double Gauss 28 degree field.zmx")
+    TheSystem.LoadFile(zmxFile, False)
 
-    # decreases rays for example to save time
-    TheSystem.SystemData.Units.SourceUnits = ZOSAPI.SystemData.ZemaxSourceUnits.Watts;
-    TheSystem.NCE.GetObjectAt(1).ObjectData.NumberOfAnalysisRays = 1e4;
-    TheSystem.NCE.GetObjectAt(4).ObjectData.Mirroring = 0;
-    TheSystem.NCE.GetObjectAt(7).ObjectData.Polarization = 0;
-    TheSystem.NCE.GetObjectAt(7).ObjectData.Mirroring = 0;
+    # raytrace = TheSystem.Tools.OpenBatchRayTrace();
+    nsur = TheSystem.LDE.NumberOfSurfaces - 1;
+    max_rays = 101;
+    total_rays_in_both_axes = (max_rays) * (max_rays);
 
-    # need just the filename to save a ZRD file during raytrace, but need the full path for running the ZRD tool (otherwise, you will get a null object reference error)
-    zrdFile = r'Digital_projector_flys_eye_homogenizer.zrd';
-    zrdFullFile = os.path.join(os.path.dirname(TheSystem.SystemFile), zrdFile)
+    # % creates batch raytrace in API
+    # % Performs a batch unpolarized ray trace, using normalized pupil coordiantes; this is similar to the DDE ray trace command, mode 0.
+    # RayTraceData = raytrace.CreateNormUnpol(total_rays_in_both_axes, ZOSAPI.Tools.RayTrace.RaysType.Real, nsur);
+    # %RayTraceData = raytrace.CreateNormPol(total_rays_in_both_axes, ZOSAPI.Tools.RayTrace.RaysType.Real, nsur);
+    #
+	# % offloads processing to C# dll
+    NET.addAssembly(pwd+'\RayTrace.dll'); #% Where does NET come from?
+    import BatchRayTrace
+    wave = 1
+    dataReader = ReadNormUnpolData(raytrace, RayTraceData)
+    dataReader.ClearData()
+    x_field = 0
+    y_field = 0
 
-    # run NSC ray trace and save ZRD file
-    tool = TheSystem.Tools.OpenNSCRayTrace();
-    tool.SplitNSCRays = False;
-    tool.ScatterNSCRays = True;
-    tool.UsePolarization = False;
-    tool.IgnoreErrors = True;
-    tool.SaveRays = True;
-    tool.SaveRaysFile = zrdFile;
-    tool.ClearDetectors(0);
-    tool.RunAndWaitForCompletion();
-    tool.Close();
+    Hx = np.ones(total_rays_in_both_axes, 1)*x_field
+    Hy = np.ones(total_rays_in_both_axes, 1)*y_field
+
+    px = np.linspace(-1,1,max_rays)
+    px,py = np.meshgrid(px,px)
+
+    Px = np.ravel(px)#np.reshape(bsxfun(@times, linspace(1, 1, max_rays)', linspace(-1, 1, max_rays)), [max_rays^2, 1]);
+    Py = np.ravel(py)#np.reshape(bsxfun(@times, linspace(1, -1, max_rays)', linspace(1, 1, max_rays)), [max_rays^2, 1]);
+
+    # Px = Pxi1:total_rays_in_both_axes) .* (sqrt((Pxi(1:total_rays_in_both_axes).^2) + Pyi(1:total_rays_in_both_axes).^2) <= 1);
+    # Py = Pyi(1:total_rays_in_both_axes) .* (sqrt((Pxi(1:total_rays_in_both_axes).^2) + Pyi(1:total_rays_in_both_axes).^2) <= 1);
+
+    # converts from matlab arrays to .NET arrays
+    HxNet = NET.convertArray(Hx, 'System.Double')
+    HyNet = NET.convertArray(Hy, 'System.Double')
+    PxNet = NET.convertArray(Px, 'System.Double')
+    PyNet = NET.convertArray(Py, 'System.Double')
+    dataReader.AddRay(wave, HxNet, HyNet, PxNet, PyNet, ZOSAPI.Tools.RayTrace.OPDMode)
+    rayData = dataReader.InitializeOutput(max_rays)
+    isFinished = False
+    totalRaysRead = 0
+    maxRays = 0
+
+    while isFinished == False:
+
+        readSegments = dataReader.ReadNextBlock(rayData);
+
+        if readSegments == 0:
+            isFinished = True
+
+        else:
+
+            maxRays = max(rayData.rayNumber.double)
+            xData = rayData.X.double
+            yData = rayData.Y.double
+
+        if totalRaysRead >= maxRays:
+            isFinished = True
+
+        if maxRays > 0:
+            x = xData[0:maxRays]
+            y = yData[0:maxRays]
+
+    raytrace.close()
+
+
+
+
+    # # run NSC ray trace and save ZRD file
+    # tool = TheSystem.Tools.OpenNSCRayTrace();
+    # tool.SplitNSCRays = False;
+    # tool.ScatterNSCRays = True;
+    # tool.UsePolarization = False;
+    # tool.IgnoreErrors = True;
+    # tool.SaveRays = True;
+    # tool.SaveRaysFile = zrdFile;
+    # tool.ClearDetectors(0);
+    # tool.RunAndWaitForCompletion();
+    # tool.Close();
 
     # read the results
     zrdReader = TheSystem.Tools.OpenRayDatabaseReader();
