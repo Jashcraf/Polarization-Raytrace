@@ -91,13 +91,17 @@
 	Here $\alpha$ denotes a Fresnel coefficient, either transmission or reflection, depending on which path you are following. The PRT matrix is computed by multiplying the three together.
 	
 	\begin{equation}
-		\overline{P}_{q} = \overline{O}_{out,q} \overbrace{J}_{q} \overbrace{O}_{in,q}^{-1}
+		\overline{P}_{q} = \overline{O}_{out,q} \overline{J}_{q} \overline{O}_{in,q}^{-1}
 	\end{equation}
 
-	To accurately convert the P pupils to Jones pupils one must rotate them into the coordinate system of the exit pupil. This requires a set of basis vectors to do the orthogonal transformation, and the $\vec{a}_{loc}$ must be specified The Jones Pupil at the exit pupil $\overline{J}_{ij,X}$ can be calculated from the P matrix at the exit pupil $\overbrace{P}_{ij,X}$ using the orthogonal matrices $\overbrace{O}_{ij,X}^{-1}$ and $\overbrace{O}_{ij,E}$. The subscripts X and E denote the exit and entrance pupils respectively. This operation transfers the entrance pupil coordinates to global coordinates, and then the global coordinates to the exit pupil coordinates. The coordinate systems should be consistent throughout. For the on-axis case, the wave vector will be normal to all points in the pupils. In this case, simply choosing the basis vectors to be x- and y- is sufficient.
+	To accurately convert the P pupils to Jones pupils one must rotate them into the coordinate system of the exit pupil. This requires a set of basis vectors to do the orthogonal transformation, and the $\vec{a}_{loc}$ must be specified The Jones Pupil at the exit pupil $\overline{J}_{ij,X}$ can be calculated from the P matrix at the exit pupil $\overline{P}_{ij,X}$ using the orthogonal matrices $\overline{O}_{ij,X}^{-1}$ and $\overline{O}_{ij,E}$. The subscripts X and E denote the exit and entrance pupils respectively. This operation transfers the entrance pupil coordinates to global coordinates, and then the global coordinates to the exit pupil coordinates. The coordinate systems should be consistent throughout. For the on-axis case, the wave vector will be normal to all points in the pupils. In this case, simply choosing the basis vectors to be x- and y- is sufficient.
 	
 	\begin{equation}
-		\overline{J}_{ij,X} = \overbrace{O}_{ij,X}^{-1} \overbrace{P}_{ij,X} \overbrace{O}_{ij,E}
+		\overline{J}_{ij,X} = \overline{O}_{ij,X}^{-1} \overline{P}_{ij,X} \overline{O}_{ij,E}
 	\end{equation}
+
+	\section{Determining the Polarization-Dependent Transmission of an Optical Element}
+	
+	Given a set of ray data and refractive index information about an Optical Element, 
 
 \end{document}

@@ -39,7 +39,7 @@ Can you do a bunch of cross products at once? seek einsum
 import numpy as np
 
 # INCOMPLETE FUNCTION
-def ConvertBatchRayData(fname,n1,n2):
+def ConvertBatchRayData(fname,n1,n2,mode='transmission'):
 
     """
     We have some control over what form this takes, but the preliminary script has to be written in MATLAB I guess
@@ -72,19 +72,13 @@ def ConvertBatchRayData(fname,n1,n2):
     mData = rays[:,4]
     nData = rays[:,5]
 
-    # Compute kin with Snell's Law 
-    kout = np.array([lData,mData,nData])
-    kin = np.cos(np.arcsin(n2*np.sin(np.arccos(kout))/n1))
-
-
     # Direction cosines of surface normal
     l2Data = rays[:,6]
     m2Data = rays[:,7]
     n2Data = rays[:,8]
 
     # normal vector
-    norm = np.array([l2Data,m2Data,n2Data])
-
+    norm = -np.array([l2Data,m2Data,n2Data])
     total_rays_in_both_axes = xData.shape[0]
 
     # convert to angles of incidence
@@ -96,11 +90,28 @@ def ConvertBatchRayData(fname,n1,n2):
     aoe_data = np.arccos(numerator/denominator)
     aoe = aoe_data - (aoe_data[0:total_rays_in_both_axes] > np.pi/2) * np.pi
     aoe = np.abs(aoe)
+    aoi = np.arcsin(n2/n1 * np.sin(aoe))
+
+    # Compute kin with Snell's Law: https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form
+    kout = np.array([lData,mData,nData])
+
+    if mode == 'transmission':
+        kin = np.cos(np.arcsin(n2*np.sin(np.arccos(kout))/n1))
+    elif mode == 'reflection':
+        kin = kout - 2*np.cos(aoi)*norm
+
+    
+    # comment out
+    # num = (kin[0,:]*l2Data + kin[1,:]*m2Data + kin[2,:]*n2Data)
+    # den = ((kin[0,:]**2 + kin[1,:]**2 + kin[2,:]**2)**0.5)*(l2Data**2 + m2Data**2 + n2Data**2)**0.5
+    # aoi_kin = np.arccos(num/den)
+    # print(aoi_kin == aoi)
+
     
     # refractive indices - can grab from ZOS-API so I'm leaving these here commented, for now just user inputs
     # n1 = TheSystem.MFE.GetOperandValue(ZOSAPI.Editors.MFE.MeritOperandType.INDX, toSurface - 1, waveNumber, 0, 0, 0, 0, 0, 0);
     # n2 = TheSystem.MFE.GetOperandValue(ZOSAPI.Editors.MFE.MeritOperandType.INDX, toSurface, waveNumber, 0, 0, 0, 0, 0, 0);
-    aoi = np.arcsin(n2/n1 * np.sin(aoe))
+    
     
     # convert to degrees
     # aoi = aoi * 180/np.pi
@@ -148,13 +159,14 @@ def ConstructOrthogonalTransferMatrices(kin,kout,normal):
     sin = np.cross(kin,normal)
     sin /= np.linalg.norm(sin) # normalize the s-vector
     pin = np.cross(kin,sin)
-    Oin = np.array([sin,pin,kin])
+    Oinv = np.array([sin,pin,kin])
 
-    sout = sin
+    sout = np.cross(kout,normal)
+    sout /= np.linalg.norm(sout) # normalize the s-vector
     pout = np.cross(kout,sout)
     Oout = np.transpose(np.array([sout,pout,kout]))
 
-    return Oin,Oout
+    return Oinv,Oout
 
 def ConstructPRTMatrix(kin,kout,normal,aoi,n1,n2,mode='reflection'):
 
@@ -162,17 +174,18 @@ def ConstructPRTMatrix(kin,kout,normal,aoi,n1,n2,mode='reflection'):
     fs,fp = FresnelCoefficients(aoi,n1,n2,mode)
 
     # Compute the orthogonal transfer matrices
-    Oin,Oout = ConstructOrthogonalTransferMatrices(kin,kout,normal)
+    Oinv,Oout = ConstructOrthogonalTransferMatrices(kin,kout,normal)
 
     # Compute the Jones matrix
     J = np.array([[fs,0,0],[0,fp,0],[0,0,1]])
 
     # Compute the Polarization Ray Tracing Matrix
-    Pmat = np.matmul(Oout,np.matmul(J,Oin))
+    # Pmat = np.matmul(Oout,np.matmul(J,Oinv))
+    Pmat = Oout @ J @ Oinv
 
     # This returns the polarization ray tracing matrix but I'm not 100% sure its in the coordinate system of the Jones Pupil
 
-    return Pmat
+    return Pmat,J
 
 # This is the function that calls the PRT engine and 
 def ComplexTransmission():
