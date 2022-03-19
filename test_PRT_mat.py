@@ -33,6 +33,7 @@ for j in range(3):
         ax.axes.xaxis.set_visible(False)
         ax.axes.yaxis.set_visible(False)
         fig.colorbar(sca,ax=ax)
+plt.show()
 
 fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
 plt.suptitle('Arg(PRT Matrix) for Surface in Webb Parabola')
