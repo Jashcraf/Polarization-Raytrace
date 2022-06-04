@@ -1,12 +1,13 @@
 %% Run a Matlab Raytrace
-
-fn = '\Sequential\Objectives\Double Gauss 28 degree field.zmx';
+clear all
+% Files have to be w.r.t. C:/ for whatever reason
+fn = 'C:\Users\jaren\Desktop\Polarization-Raytrace\Hubble_Test.zmx';
 hx = 0;
 hy = 0;
-surface = 5;
+surface = 3; % remember that object surface is counted as 1 when supplying the surface number
 nrays = 51;
 
-[ xData,yData,zData,lData,mData,nData,l2Data,m2Data,n2Data,n1,n2 ] = MATLAB_BatchRayTrace_ReadPRTData(surface,nrays,hx,hy,fn);
+[xData,yData,zData,lData,mData,nData,l2Data,m2Data,n2Data,n1,n2 ] = MATLAB_BatchRayTrace_ReadPRTData(surface,nrays,hx,hy,fn);
 
 %% Write the data to a text file that python can interpret
 xData = xData';
@@ -21,7 +22,7 @@ l2Data = l2Data';
 m2Data = m2Data';
 n2Data = n2Data';
 % Create a table with the data and variable names
-T = table(xData,yData,zData,lData,mData,nData,l2Data,m2Data,n2Data)%,...
+T = table(xData,yData,zData,lData,mData,nData,l2Data,m2Data,n2Data);%,...
 %     'ColumnNames',...
 %     { 'xData','yData','zData','lData','mData','nData','l2Data','m2Data','n2Data','n1','n2'} );
 
