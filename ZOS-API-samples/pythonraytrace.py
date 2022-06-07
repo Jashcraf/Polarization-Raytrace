@@ -1,5 +1,17 @@
 import zosapi
 from System import Enum, Int32, Double, Array
+import numpy as np
+
+# Some User Imports
+nrays = 11
+parent = 'C:/Users/jaren/Desktop/Polarization-Raytrace/'
+filename = parent+'Hubble_Test.zmx'
+wave = 1
+Px = np.linspace(-1,1,nrays)
+Py = np.linspace(-1,1,nrays)
+Hx = np.zeros(Px.shape)
+Hy = np.zeros(Px.shape)
+# Px,Py = np.meshgrid(Px,Py)
 
 # add the raytrace.dll from the current directory
 import clr, os
@@ -16,7 +28,7 @@ import BatchRayTrace;
 zos = zosapi.App()
 TheSystem = zos.TheSystem
 ZOSAPI = zos.ZOSAPI
-TheSystem.LoadFile(os.path.join(zos.TheApplication.SamplesDir, r'Sequential\Objectives\Double Gauss 28 degree field.zmx'), False)
+TheSystem.LoadFile(filename, False)
 
 # check to make sure the file was loaded
 if TheSystem.LDE.NumberOfSurfaces < 4:
@@ -24,7 +36,7 @@ if TheSystem.LDE.NumberOfSurfaces < 4:
     exit()
 
 # run a sequential ray trace
-maxrays = 4;        # let's trace the 4 marginal rays
+maxrays = nrays;        # let's trace the 4 marginal rays
 tool = TheSystem.Tools.OpenBatchRayTrace();
 normUnpol = tool.CreateNormUnpol(maxrays, ZOSAPI.Tools.RayTrace.RaysType.Real, TheSystem.LDE.NumberOfSurfaces - 1)
 
@@ -33,16 +45,12 @@ reader = BatchRayTrace.ReadNormUnpolData(tool, normUnpol)
 reader.ClearData();
 
 # initialize the output (the number of indices in the output array is maxseg*maxseg
-maxseg = 2;
+maxseg = 4;
 rays = reader.InitializeOutput(maxseg);
 
 # add the 4 full field marginal rays
 import numpy as np
-Hx = np.linspace(-1,1,4)
-Hy = np.linspace(-1,1,4)
-Px = np.linspace(-1,1,4)
-Py = np.linspace(-1,1,4)
-reader.AddRay(2, 
+reader.AddRay(wave, 
     Hx, 
     Hy, 
     Px, 
@@ -58,6 +66,15 @@ while not isfinished:
 # print the rays
 print(list(rays.X))
 print(list(rays.Y))
+print(list(rays.Z))
+
+print(list(rays.L))
+print(list(rays.M))
+print(list(rays.N))
+
+print(list(rays.l2))
+print(list(rays.m2))
+print(list(rays.n2))
 
 # always close your tools
 tool.Close();
