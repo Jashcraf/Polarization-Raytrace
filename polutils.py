@@ -156,7 +156,8 @@ def FresnelCoefficients(aoi,n1,n2,mode='reflection'):
         return rs,rp,ts,tp
 
 def ConstructOrthogonalTransferMatrices(kin,kout,normal):
-
+    
+    # PL&OS Page 326 Eq 9.5 - 9.7
     # Construct Oin-1 with incident ray, say vectors are row vectors
     # kin /= np.linalg.norm(kin) # these were not in chippman and lam - added 03/30/2022
     # kout /= np.linalg.norm(kout)

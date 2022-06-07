@@ -1,6 +1,6 @@
 import clr, os, winreg, ctypes, sys
 import numpy as np
-#from System.Runtime.InteropServices import GCHandle, GCHandleType
+from System.Runtime.InteropServices import GCHandle, GCHandleType
 
 
 class PythonStandaloneApplication(object):
@@ -38,6 +38,7 @@ class PythonStandaloneApplication(object):
 
         # add ZOS-API referencecs
         clr.AddReference(os.path.join(os.sep, dir, "ZOSAPI.dll"))
+        print(os.sep)
         clr.AddReference(os.path.join(os.sep, dir, "ZOSAPI_Interfaces.dll"))
         import ZOSAPI
 
@@ -138,23 +139,22 @@ if __name__ == '__main__':
     clr.AddReference(os.path.join(os.sep, os.path.dirname(os.path.realpath(__file__)), r'RayTrace.dll'))
     import BatchRayTrace
     import ZOSAPI.Tools.RayTrace
+    from ZOSAPI import *
 
     # load sample fly's eye example
     #zmxFile = os.path.join(os.sep, TheApplication.SamplesDir, r"Non-sequential\Miscellaneous\Digital_projector_flys_eye_homogenizer.zmx")
     zmxFile = os.path.join(os.sep, TheApplication.SamplesDir, r"\Sequential\Objectives\Double Gauss 28 degree field.zmx")
     TheSystem.LoadFile(zmxFile, False)
 
-    # raytrace = TheSystem.Tools.OpenBatchRayTrace();
-    nsur = TheSystem.LDE.NumberOfSurfaces - 1;
-    max_rays = 101;
-    total_rays_in_both_axes = (max_rays) * (max_rays);
+    raytrace = TheSystem.Tools.OpenBatchRayTrace()
+    nsur = TheSystem.LDE.NumberOfSurfaces - 1
+    max_rays = 101
+    total_rays_in_both_axes = (max_rays) * (max_rays)
 
     # % creates batch raytrace in API
     # % Performs a batch unpolarized ray trace, using normalized pupil coordiantes; this is similar to the DDE ray trace command, mode 0.
-    # RayTraceData = raytrace.CreateNormUnpol(total_rays_in_both_axes, ZOSAPI.Tools.RayTrace.RaysType.Real, nsur);
-    # %RayTraceData = raytrace.CreateNormPol(total_rays_in_both_axes, ZOSAPI.Tools.RayTrace.RaysType.Real, nsur);
-    #
-	# % offloads processing to C# dll
+    RayTraceData = raytrace.CreateNormUnpol(total_rays_in_both_axes, ZOSAPI.Tools.RayTrace.RaysType.Real, nsur)
+    
     NET.addAssembly(pwd+'\RayTrace.dll'); #% Where does NET come from?
     import BatchRayTrace
     wave = 1
@@ -211,35 +211,7 @@ if __name__ == '__main__':
 
 
 
-    # # run NSC ray trace and save ZRD file
-    # tool = TheSystem.Tools.OpenNSCRayTrace();
-    # tool.SplitNSCRays = False;
-    # tool.ScatterNSCRays = True;
-    # tool.UsePolarization = False;
-    # tool.IgnoreErrors = True;
-    # tool.SaveRays = True;
-    # tool.SaveRaysFile = zrdFile;
-    # tool.ClearDetectors(0);
-    # tool.RunAndWaitForCompletion();
-    # tool.Close();
-
-    # read the results
-    zrdReader = TheSystem.Tools.OpenRayDatabaseReader();
-    zrdReader.ZRDFile = zrdFullFile;
-    zrdReader.Filter = '';
-    zrdReader.RunAndWaitForCompletion();
-    results = zrdReader.GetResults();
-
-    # perform batch processing
-    dataReader = BatchRayTrace.ReadZRDData(results)
-    maxSegments = 1000000;
-    zrdData = dataReader.InitializeOutput(maxSegments);
-
-    isFinished = False;
-    totalSegRead = 0;
-    totalRaysRead = 0;
-    pow4 = 0.0;
-    pow7 = 0.0;
+    
 
     # need to have another buffer-to-numpy conversion for the 'long' arrays being passed back from the DLL
     # the following is the output structure from the ZRDOutput class

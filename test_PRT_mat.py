@@ -4,9 +4,12 @@ import polutils as pol
 from numpy.linalg import eig,inv
 
 # Test the PRT Computation
-n2 = 1.4358 + 1j*9.4953 # Aluminum
-n1 = 1
-pth = '/Users/jashcraft/Desktop/prt-data/test_prt_data.txt'
+
+# n1 = 1.4358 + 1j*9.4953 # Aluminum
+n1 = 0.81257 + 1j*6.0481
+n2 = 1
+pth = 'test_prt_data.txt'
+
 # pth = '/Users/jashcraft/Desktop/prt-data/Webb_Parabola_ray_data.txt'
 aoi,x,y,kin,kout,norm = pol.ConvertBatchRayData(pth,n1,n2,mode='reflection')
 ts,tp = pol.FresnelCoefficients(aoi,n1,n2)
@@ -24,7 +27,6 @@ for i in range(kin.shape[1]):
         n1,
         n2,
         mode='reflection')
-
     # Diagonalize PRT Matrix with eigenvectors
     eval,evec = eig(P)
     Pmat[:,:,i] = inv(evec) @ P @ evec
@@ -67,24 +69,68 @@ plt.show()
 # plt.show()
 
 # fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
-# plt.suptitle('|Jones Matrix| for Surface in Webb Parabola')
+# plt.suptitle('|PRT Matrix| for Surface in Webb Parabola')
 # for j in range(3):
 #     for k in range(3):
 #         ax = axs[j,k]
-#         ax.set_title('J{j}{k}'.format(j=j,k=k))
-#         sca = ax.scatter(x,y,c=np.abs(Jmat[j,k,:]))
+#         ax.set_title('P{j}{k}'.format(j=j,k=k))
+#         sca = ax.scatter(x,y,c=np.abs(Pmat[j,k,:]))
+#         ax.axes.xaxis.set_visible(False)
+#         ax.axes.yaxis.set_visible(False)
 #         fig.colorbar(sca,ax=ax)
 # plt.show()
 
 # fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
-# plt.suptitle('Arg{Jones Matrix} for Surface in Webb Parabola')
+# plt.suptitle('Arg(PRT Matrix) for Surface in Webb Parabola')
 # for j in range(3):
 #     for k in range(3):
 #         ax = axs[j,k]
-#         ax.set_title('J{j}{k}'.format(j=j,k=k))
-#         sca = ax.scatter(x,y,c=np.angle(Jmat[j,k,:]))
+#         ax.set_title('P{j}{k}'.format(j=j,k=k))
+#         sca = ax.scatter(x,y,c=np.angle(Pmat[j,k,:]))
+#         ax.axes.xaxis.set_visible(False)
+#         ax.axes.yaxis.set_visible(False)
 #         fig.colorbar(sca,ax=ax)
 # plt.show()
+
+# fig,axs = plt.subplots(figsize=[9,3],ncols=3)
+# plt.suptitle('E field')
+# tit = ['x','y','z']
+# for l in range(3):
+#     ax = axs[l]
+#     ax.set_title('E{}'.format(tit[l]))
+#     sca = ax.scatter(x,y,c=np.abs(Pmat[l,0,:]+Pmat[l,1,:]+Pmat[l,2,:]))
+#     fig.colorbar(sca,ax=ax)
+# plt.show()
+
+fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
+plt.suptitle('|Jones Matrix| for Surface in Hubble')
+for j in range(3):
+    for k in range(3):
+        ax = axs[j,k]
+        ax.set_title('J{j}{k}'.format(j=j,k=k))
+        sca = ax.scatter(x,y,c=np.abs(Jmat[j,k,:]))
+        fig.colorbar(sca,ax=ax)
+plt.show()
+
+fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
+plt.suptitle('Arg{Jones Matrix} for Surface in Hubble')
+for j in range(3):
+    for k in range(3):
+
+        # Offset the p coefficient
+        if j == 1:
+            if k == 1:
+                offset = np.pi
+            else:
+                offset = 0
+        else:
+            offset = 0
+
+        ax = axs[j,k]
+        ax.set_title('J{j}{k}'.format(j=j,k=k))
+        sca = ax.scatter(x,y,c=np.angle(Jmat[j,k,:])+offset)
+        fig.colorbar(sca,ax=ax)
+plt.show()
 
 # Compute Diattenuation and Retardance
 # print(Jmat)
