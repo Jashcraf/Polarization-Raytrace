@@ -8,12 +8,11 @@ n2 = 1
 pth = '/Users/jashcraft/Desktop/prt-data/test_prt_data_'
 
 files = [pth+'primary.txt',pth+'secondary.txt',pth+'folding.txt']
-
-aoi,x,y,kin,kout,norm = pol.ConvertBatchRayData(files[0],n1,n2,mode='reflection')
-
+aoi,xp,yp,kin,kout,norm = pol.ConvertBatchRayData(files[0],n1,n2,mode='reflection')
 Pmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
 Jmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
 Pmatlist = []
+Jmatlist = []
 
 for path in files:
 
@@ -33,15 +32,35 @@ for path in files:
 
     # try a list of arrays
     Pmatlist.append(Pmat)
+    Jmatlist.append(Jmat)
 
 P1 = Pmatlist[0]
 P2 = Pmatlist[1]
 P3 = Pmatlist[2]
+# J1 = Jmatlist[0]
 
-Pmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
+# f1 = np.abs(J1[0,0]*np.conj(J1[0,0]))
+# f2 = np.abs(J1[1,1]*np.conj(J1[1,1]))
 
-for lmn in range(Pmat.shape[2]):
-    Pmat[:,:,lmn] = P3[:,:,lmn] @ P2[:,:,lmn] @ P1[:,:,lmn]
+# D2 = (f1-f2)/(f1+f2)
+
+Pmat = P1 #np.zeros([3,3,kin.shape[1]],dtype='complex128')
+D1 = np.zeros([kin.shape[1]],dtype='complex128')
+
+# for lmn in range(Pmat.shape[2]):
+#     Pmat[:,:,lmn] = P3[:,:,lmn] @ P2[:,:,lmn] @ P1[:,:,lmn]
+#     D1[lmn] = pol.ComputeDiattentuationFromP(P1[:,:,lmn])
+
+# plt.figure(figsize=[10,5])
+# plt.subplot(121)
+# plt.title('Diattenuation from SVD')
+# plt.scatter(x,y,c=D1)
+# plt.colorbar()
+# plt.subplot(122)
+# plt.title('Diattenuation from Fresnel Coeffs')
+# plt.scatter(x,y,c=D2)
+# plt.colorbasr()
+# plt.show()
 
 fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
 plt.suptitle('|PRT Matrix| for Surface in Webb Parabola')

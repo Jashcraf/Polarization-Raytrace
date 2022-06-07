@@ -1,20 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import polutils as pol
+from numpy.linalg import eig,inv
 
 # Test the PRT Computation
-n1 = 1.4358 + 1j*9.4953 # Aluminum
-n2 = 1
+n2 = 1.4358 + 1j*9.4953 # Aluminum
+n1 = 1
 pth = '/Users/jashcraft/Desktop/prt-data/test_prt_data.txt'
-pth = '/Users/jashcraft/Desktop/prt-data/Webb_Parabola_ray_data.txt'
+# pth = '/Users/jashcraft/Desktop/prt-data/Webb_Parabola_ray_data.txt'
 aoi,x,y,kin,kout,norm = pol.ConvertBatchRayData(pth,n1,n2,mode='reflection')
 ts,tp = pol.FresnelCoefficients(aoi,n1,n2)
 Pmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
 Jmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
 
+
 for i in range(kin.shape[1]):
 
-    Pmat[:,:,i],Jmat[:,:,i] = pol.ConstructPRTMatrix(
+    P,Jmat[:,:,i] = pol.ConstructPRTMatrix(
         kin[:,i],
         kout[:,i],
         norm[:,i],
@@ -22,6 +24,13 @@ for i in range(kin.shape[1]):
         n1,
         n2,
         mode='reflection')
+
+    # Diagonalize PRT Matrix with eigenvectors
+    eval,evec = eig(P)
+    Pmat[:,:,i] = inv(evec) @ P @ evec
+
+
+
 
 fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
 plt.suptitle('|PRT Matrix| for Surface in Webb Parabola')

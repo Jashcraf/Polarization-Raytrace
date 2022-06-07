@@ -79,6 +79,7 @@ def ConvertBatchRayData(fname,n1,n2,mode='transmission'):
 
     # normal vector
     norm = -np.array([l2Data,m2Data,n2Data])
+    norm /= np.sqrt(l2Data**2 + m2Data**2 + n2Data**2)
     total_rays_in_both_axes = xData.shape[0]
 
     # convert to angles of incidence
@@ -93,7 +94,8 @@ def ConvertBatchRayData(fname,n1,n2,mode='transmission'):
     aoi = np.arcsin(n2/n1 * np.sin(aoe))
 
     # Compute kin with Snell's Law: https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form
-    kout = np.array([lData,mData,nData])
+    kout = np.array([lData,mData,n2Data])
+    kout /= np.sqrt(lData**2 + mData**2 + nData**2)
 
     if mode == 'transmission':
         kin = np.cos(np.arcsin(n2*np.sin(np.arccos(kout))/n1))
@@ -156,13 +158,16 @@ def FresnelCoefficients(aoi,n1,n2,mode='reflection'):
 def ConstructOrthogonalTransferMatrices(kin,kout,normal):
 
     # Construct Oin-1 with incident ray, say vectors are row vectors
+    # kin /= np.linalg.norm(kin) # these were not in chippman and lam - added 03/30/2022
+    # kout /= np.linalg.norm(kout)
+
     sin = np.cross(kin,normal)
-    sin /= np.linalg.norm(sin) # normalize the s-vector
+    # sin /= np.linalg.norm(sin) # normalize the s-vector
     pin = np.cross(kin,sin)
     Oinv = np.array([sin,pin,kin])
 
     sout = np.cross(kout,normal)
-    sout /= np.linalg.norm(sout) # normalize the s-vector
+    # sout /= np.linalg.norm(sout) # normalize the s-vector
     pout = np.cross(kout,sout)
     Oout = np.transpose(np.array([sout,pout,kout]))
 
@@ -187,9 +192,114 @@ def ConstructPRTMatrix(kin,kout,normal,aoi,n1,n2,mode='reflection'):
 
     return Pmat,J
 
+def ComputeDiattentuationFromP(Pmat):
+
+    """
+    CH 9.4 in PL&OS by Chipman and Lam
+    """
+
+    s = np.linalg.svd(Pmat,compute_uv=False)
+    f1 = np.abs(s[0]*np.conj(s[0]))
+    f2 = np.abs(s[1]*np.conj(s[1]))
+    D = (f1-f2)/(f1+f2)
+    return D
+
+def ComputeRetardanceFromP(Pmat):
+    return
+
 # This is the function that calls the PRT engine and 
 def ComplexTransmission():
     pass
+
+def StokesH():
+    return np.array([1,1,0,0])
+
+def StokesV():
+    return np.array([1,-1,0,0])
+
+def Stokes45():
+    return np.array([1,0,1,0])
+    
+def Stokes135():
+    return np.array([1,0,-1,0])
+    
+def StokesR():
+    return np.array([1,0,0,1])
+
+def StokesL():
+    return np.array([1,0,0,-1])
+
+def LinearPolarizerM(a):
+    """Quinn Jarecki's Linear Polarizer, generates an ideal polarizer
+
+    Parameters
+    ----------
+    a : float
+       angle of transmission axis w.r.t. horizontal in radians
+
+    Returns
+    -------
+    numpy.ndarray
+        Mueller Matrix for the linear polarizer
+    """
+
+    M00 = 1
+    M01 = np.cos(2*a)
+    M02 = np.sin(2*a)
+
+    M10 = np.cos(2*a)
+    M11 = np.cos(2*a)**2
+    M12 = np.cos(2*a)*np.sin(2*a)
+    
+    M20 = np.sin(2*a)
+    M21 = np.cos(2*a)*np.sin(2*a)
+    M22 = np.sin(2*a)**2
+
+    return 0.5*np.array([[1,M01,M02,0],
+                         [M10,M11,M12,0],
+                         [M20,M21,M22,0],
+                         [0,0,0,0]])
+
+def LinearRetarderM(a,r):
+    """Quinn Jarecki's Linear Retarder, generates an ideal retarder
+
+    Parameters
+    ----------
+    a : float
+        angle of fast axis w.r.t. horizontal in radians
+    r : float
+        retardance in radians
+
+    Returns
+    -------
+    numpy.ndarray
+        Mueller Matrix for Linear Retarder
+    """
+
+    M11 = np.cos(2*a)**2 + np.cos(r)*np.sin(2*a)**2
+    M12 = (1-np.cos(r))*np.cos(2*a)*np.sin(2*a)
+    M13 = -np.sin(r)*np.sin(2*a)
+
+    M21 = M11
+    M22 = np.cos(r)*np.cos(2*a)**2 + np.sin(2*a)**2
+    M23 = np.cos(2*a)*np.sin(r)
+
+    M31 = -M13
+    M32 = -M23
+    M33 = np.cos(r)
+
+    return np.array([[1,0,0,0],
+                     [0,M11,M12,M13],
+                     [0,M21,M22,M23],
+                     [0,M31,M32,M33]])
+
+
+def MuellerQWP():
+    return 0.5*np.array([[1,0,0,0],
+                         [0,1,0,0],
+                         [0,0,0,1],
+                         [0,0,-1,0]])
+    
 
 def hLinearPolarizer():
     return np.array([[1,0],[0,0]])
