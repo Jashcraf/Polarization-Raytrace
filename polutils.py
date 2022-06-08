@@ -72,6 +72,7 @@ def ConvertBatchRayData(fname,n1,n2,mode='transmission'):
     mData = rays[:,4]
     nData = rays[:,5]
 
+
     # Direction cosines of surface normal
     l2Data = rays[:,6]
     m2Data = rays[:,7]
@@ -91,10 +92,10 @@ def ConvertBatchRayData(fname,n1,n2,mode='transmission'):
     aoe_data = np.arccos(numerator/denominator)
     aoe = aoe_data - (aoe_data[0:total_rays_in_both_axes] > np.pi/2) * np.pi
     aoe = np.abs(aoe)
-    aoi = np.arcsin(n2/n1 * np.sin(aoe))
+    aoi = (np.arcsin(n2/n1 * np.sin(aoe)))
 
     # Compute kin with Snell's Law: https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form
-    kout = np.array([lData,mData,n2Data])
+    kout = np.array([lData,mData,nData])
     kout /= np.sqrt(lData**2 + mData**2 + nData**2)
 
     if mode == 'transmission':
@@ -163,12 +164,12 @@ def ConstructOrthogonalTransferMatrices(kin,kout,normal):
     # kout /= np.linalg.norm(kout)
 
     sin = np.cross(kin,normal)
-    # sin /= np.linalg.norm(sin) # normalize the s-vector
+    sin /= np.linalg.norm(sin) # normalize the s-vector
     pin = np.cross(kin,sin)
     Oinv = np.array([sin,pin,kin])
 
-    sout = np.cross(kout,normal)
-    # sout /= np.linalg.norm(sout) # normalize the s-vector
+    sout = sin #np.cross(kout,normal)
+    sout /= np.linalg.norm(sout) # normalize the s-vector
     pout = np.cross(kout,sout)
     Oout = np.transpose(np.array([sout,pout,kout]))
 
@@ -177,7 +178,7 @@ def ConstructOrthogonalTransferMatrices(kin,kout,normal):
 def ConstructPRTMatrix(kin,kout,normal,aoi,n1,n2,mode='reflection'):
 
     # Compute the Fresnel coefficients for either transmission OR reflection
-    fs,fp = FresnelCoefficients(aoi,n1,n2,mode)
+    fs,fp = FresnelCoefficients(aoi,n1,n2,mode=mode)
 
     # Compute the orthogonal transfer matrices
     Oinv,Oout = ConstructOrthogonalTransferMatrices(kin,kout,normal)

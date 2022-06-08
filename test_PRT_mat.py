@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import polutils as pol
+from pythonraytrace import ZOSRayData
 from numpy.linalg import eig,inv
 
 # Test the PRT Computation
@@ -8,10 +9,13 @@ from numpy.linalg import eig,inv
 # n1 = 1.4358 + 1j*9.4953 # Aluminum
 n1 = 0.81257 + 1j*6.0481
 n2 = 1
-pth = 'test_prt_data.txt'
+pth = 'C:/Users/jaren/Desktop/Polarization-Raytrace/Hubble_Test.zmx'
+nrays = 5
+surf = 2
 
 # pth = '/Users/jashcraft/Desktop/prt-data/Webb_Parabola_ray_data.txt'
-aoi,x,y,kin,kout,norm = pol.ConvertBatchRayData(pth,n1,n2,mode='reflection')
+aoi,x,y,kin,kout,norm = pol.ConvertBatchRayData('test_prt_data.txt',n1,n2,mode='reflection')
+# aoi,x,y,kin,kout,norm = ZOSRayData(nrays,pth,surf,n1,n2,mode='reflection')
 ts,tp = pol.FresnelCoefficients(aoi,n1,n2)
 Pmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
 Jmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
@@ -27,11 +31,16 @@ for i in range(kin.shape[1]):
         n1,
         n2,
         mode='reflection')
-    # Diagonalize PRT Matrix with eigenvectors
-    eval,evec = eig(P)
-    Pmat[:,:,i] = inv(evec) @ P @ evec
+    # print(P)
+    # # Diagonalize PRT Matrix with eigenvectors
+    # eval,evec = eig(P)
+    Pmat[:,:,i] =  P # inv(evec) @ P @ evec
 
-
+print(aoi)
+plt.figure()
+plt.scatter(x,y,c=aoi)
+plt.colorbar()
+plt.show()
 
 
 fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
@@ -57,6 +66,8 @@ for j in range(3):
         ax.axes.yaxis.set_visible(False)
         fig.colorbar(sca,ax=ax)
 plt.show()
+
+
 
 # fig,axs = plt.subplots(figsize=[9,3],ncols=3)
 # plt.suptitle('E field')
@@ -102,35 +113,35 @@ plt.show()
 #     fig.colorbar(sca,ax=ax)
 # plt.show()
 
-fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
-plt.suptitle('|Jones Matrix| for Surface in Hubble')
-for j in range(3):
-    for k in range(3):
-        ax = axs[j,k]
-        ax.set_title('J{j}{k}'.format(j=j,k=k))
-        sca = ax.scatter(x,y,c=np.abs(Jmat[j,k,:]))
-        fig.colorbar(sca,ax=ax)
-plt.show()
+# fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
+# plt.suptitle('|Jones Matrix| for Surface in Hubble')
+# for j in range(3):
+#     for k in range(3):
+#         ax = axs[j,k]
+#         ax.set_title('J{j}{k}'.format(j=j,k=k))
+#         sca = ax.scatter(x,y,c=np.abs(Jmat[j,k,:]))
+#         fig.colorbar(sca,ax=ax)
+# plt.show()
 
-fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
-plt.suptitle('Arg{Jones Matrix} for Surface in Hubble')
-for j in range(3):
-    for k in range(3):
+# fig,axs = plt.subplots(figsize=[9,9],nrows=3,ncols=3)
+# plt.suptitle('Arg{Jones Matrix} for Surface in Hubble')
+# for j in range(3):
+#     for k in range(3):
 
-        # Offset the p coefficient
-        if j == 1:
-            if k == 1:
-                offset = np.pi
-            else:
-                offset = 0
-        else:
-            offset = 0
+#         # Offset the p coefficient
+#         if j == 1:
+#             if k == 1:
+#                 offset = np.pi
+#             else:
+#                 offset = 0
+#         else:
+#             offset = 0
 
-        ax = axs[j,k]
-        ax.set_title('J{j}{k}'.format(j=j,k=k))
-        sca = ax.scatter(x,y,c=np.angle(Jmat[j,k,:])+offset)
-        fig.colorbar(sca,ax=ax)
-plt.show()
+#         ax = axs[j,k]
+#         ax.set_title('J{j}{k}'.format(j=j,k=k))
+#         sca = ax.scatter(x,y,c=np.angle(Jmat[j,k,:])+offset)
+#         fig.colorbar(sca,ax=ax)
+# plt.show()
 
 # Compute Diattenuation and Retardance
 # print(Jmat)
