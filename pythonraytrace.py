@@ -21,15 +21,15 @@ def ZOSRayData(nrays,pth,surf,n1,n2,mode='reflection',show_rays=False):
     # yData = yData[yData != 0]
 
     # Which one is the most restrictive?
-    print(xData.shape)
-    print(yData.shape)
-    print(zData.shape)
-    print(lData.shape)
-    print(mData.shape)
-    print(nData.shape)
-    print(l2Data.shape)
-    print(m2Data.shape)
-    print(n2Data.shape)
+    # print(xData.shape)
+    # print(yData.shape)
+    # print(zData.shape)
+    # print(lData.shape)
+    # print(mData.shape)
+    # print(nData.shape)
+    # print(l2Data.shape)
+    # print(m2Data.shape)
+    # print(n2Data.shape)
 
     if show_rays == True:
         import matplotlib.pyplot as plt
@@ -51,7 +51,7 @@ def ZOSRayData(nrays,pth,surf,n1,n2,mode='reflection',show_rays=False):
      # normal vector
     norm = -np.array([l2Data,m2Data,n2Data])
     norm /= np.sqrt(l2Data**2 + m2Data**2 + n2Data**2)
-    print(norm)
+    # print(norm)
     total_rays_in_both_axes = xData.shape[0]
 
     # convert to angles of incidence

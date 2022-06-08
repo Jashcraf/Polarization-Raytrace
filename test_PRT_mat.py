@@ -10,12 +10,12 @@ from numpy.linalg import eig,inv
 n1 = 0.81257 + 1j*6.0481
 n2 = 1
 pth = 'C:/Users/jaren/Desktop/Polarization-Raytrace/Hubble_Test.zmx'
-nrays = 5
+nrays = 51
 surf = 2
 
 # pth = '/Users/jashcraft/Desktop/prt-data/Webb_Parabola_ray_data.txt'
-aoi,x,y,kin,kout,norm = pol.ConvertBatchRayData('test_prt_data.txt',n1,n2,mode='reflection')
-# aoi,x,y,kin,kout,norm = ZOSRayData(nrays,pth,surf,n1,n2,mode='reflection')
+# aoi,x,y,kin,kout,norm = pol.ConvertBatchRayData('test_prt_data.txt',n1,n2,mode='reflection')
+aoi,x,y,kin,kout,norm = ZOSRayData(nrays,pth,surf,n1,n2,mode='reflection')
 ts,tp = pol.FresnelCoefficients(aoi,n1,n2)
 Pmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
 Jmat = np.zeros([3,3,kin.shape[1]],dtype='complex128')
